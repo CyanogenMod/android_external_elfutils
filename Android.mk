@@ -121,6 +121,10 @@ LOCAL_CFLAGS +=-include $(LOCAL_PATH)/config-compat-linux.h
 endif
 ifeq ($(HOST_OS),darwin)
 LOCAL_CFLAGS +=-include $(LOCAL_PATH)/config-compat-darwin.h
+build_mac_version := $(shell sw_vers -productVersion)
+ifneq ($(filter 10.7 10.7.%, $(build_mac_version)),)
+LOCAL_CFLAGS += -D__APPLE_LION__
+endif
 endif
 ifeq ($(HOST_OS),windows)
 LOCAL_CFLAGS +=-include $(LOCAL_PATH)/config-compat-cygwin.h
@@ -183,6 +187,10 @@ LOCAL_CFLAGS +=-include $(LOCAL_PATH)/config-compat-linux.h
 endif
 ifeq ($(HOST_OS),darwin)
 LOCAL_CFLAGS +=-include $(LOCAL_PATH)/config-compat-darwin.h
+build_mac_version := $(shell sw_vers -productVersion)
+ifneq ($(filter 10.7 10.7.%, $(build_mac_version)),)
+LOCAL_CFLAGS += -D__APPLE_LION__
+endif
 endif
 ifeq ($(HOST_OS),windows)
 LOCAL_CFLAGS +=-include $(LOCAL_PATH)/config-compat-cygwin.h
