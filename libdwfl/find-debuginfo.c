@@ -205,7 +205,7 @@ find_debuginfo_in_path (Dwfl_Module *mod, const char *file_name,
 	  break;
 	}
 
-      char *fname;
+      char *fname = NULL;
       int fd = try_open (dir, subdir, debuglink_file, &fname);
       if (fd < 0)
 	switch (errno)
