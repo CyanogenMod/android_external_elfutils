@@ -138,7 +138,13 @@ dwfl_report_module (Dwfl *dwfl, const char *name,
 {
   Dwfl_Module **tailp = &dwfl->modulelist, **prevp = tailp;
 
+#ifdef __clang__
+  __block   int val = 0;
+  Dwfl_Module* (^use) (Dwfl_Module *) = ^Dwfl_Module* (Dwfl_Module *mod)
+#else
+  int val = 0;
   inline Dwfl_Module *use (Dwfl_Module *mod)
+#endif
   {
     mod->next = *tailp;
     *tailp = mod;
@@ -150,7 +156,7 @@ dwfl_report_module (Dwfl *dwfl, const char *name,
       }
 
     return mod;
-  }
+  };
 
   for (Dwfl_Module *m = *prevp; m != NULL; m = *(prevp = &m->next))
     {

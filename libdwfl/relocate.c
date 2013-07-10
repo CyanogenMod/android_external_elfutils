@@ -303,8 +303,14 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
     return DWFL_E_LIBELF;
 
   /* Apply one relocation.  Returns true for any invalid data.  */
+#ifdef __clang__
+  Dwfl_Error (^relocate) (GElf_Addr, const GElf_Sxword *,
+		       int, int) = ^Dwfl_Error (GElf_Addr offset, const GElf_Sxword *addend,
+		       int rtype, int symndx)
+#else
   Dwfl_Error relocate (GElf_Addr offset, const GElf_Sxword *addend,
 		       int rtype, int symndx)
+#endif
   {
     /* First see if this is a reloc we can handle.
        If we are skipping it, don't bother resolving the symbol.  */
@@ -430,16 +436,22 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 
     /* We have applied this relocation!  */
     return DWFL_E_NOERROR;
-  }
+  };
 
   /* Fetch the relocation section and apply each reloc in it.  */
   Elf_Data *reldata = elf_getdata (scn, NULL);
   if (reldata == NULL)
     return DWFL_E_LIBELF;
 
+#ifdef __clang__
+  __block Dwfl_Error result = DWFL_E_NOERROR;
+  __block bool first_badreltype = true;
+  void (^check_badreltype) (void) = ^void (void)
+#else
   Dwfl_Error result = DWFL_E_NOERROR;
   bool first_badreltype = true;
-  inline void check_badreltype (void)
+  inline void check_badreltype(void)
+#endif
   {
     if (first_badreltype)
       {
@@ -449,7 +461,7 @@ relocate_section (Dwfl_Module *mod, Elf *relocated, const GElf_Ehdr *ehdr,
 	     any libebl_CPU.so library.  Diagnose that clearly.  */
 	  result = DWFL_E_UNKNOWN_MACHINE;
       }
-  }
+    };
 
   size_t nrels = shdr->sh_size / shdr->sh_entsize;
   size_t complete = 0;

@@ -91,9 +91,14 @@ dwarf_getscopevar (Dwarf_Die *scopes, int nscopes,
 {
   /* Match against the given file name.  */
   size_t match_file_len = match_file == NULL ? 0 : strlen (match_file);
-  bool lastfile_matches = false;
   const char *lastfile = NULL;
+#ifdef __clang__
+  __block bool lastfile_matches = false;
+  bool (^file_matches) (Dwarf_Files *, size_t) = ^bool (Dwarf_Files *files, size_t idx)
+#else
+    bool lastfile_matches = false;
   inline bool file_matches (Dwarf_Files *files, size_t idx)
+#endif
     {
       if (idx >= files->nfiles)
 	return false;
@@ -108,7 +113,7 @@ dwarf_getscopevar (Dwarf_Die *scopes, int nscopes,
 				  || file[len - match_file_len - 1] == '/'));
 	}
       return lastfile_matches;
-    }
+    };
 
   /* Start with the innermost scope and move out.  */
   for (int out = 0; out < nscopes; ++out)

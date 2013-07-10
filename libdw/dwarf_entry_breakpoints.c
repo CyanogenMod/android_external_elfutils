@@ -60,11 +60,19 @@ dwarf_entry_breakpoints (die, bkpts)
      Dwarf_Die *die;
      Dwarf_Addr **bkpts;
 {
+#ifdef __clang__
+  __block int nbkpts = 0;
+#else
   int nbkpts = 0;
+#endif
   *bkpts = NULL;
 
   /* Add one breakpoint location to the result vector.  */
+#ifdef __clang__
+  int (^add_bkpt) (Dwarf_Addr) = ^int (Dwarf_Addr pc)
+#else
   inline int add_bkpt (Dwarf_Addr pc)
+#endif
     {
       Dwarf_Addr *newlist = realloc (*bkpts, ++nbkpts * sizeof newlist[0]);
       if (newlist == NULL)
@@ -77,14 +85,18 @@ dwarf_entry_breakpoints (die, bkpts)
       newlist[nbkpts - 1] = pc;
       *bkpts = newlist;
       return nbkpts;
-    }
+    };
 
   /* Fallback result, break at the entrypc/lowpc value.  */
+#ifdef __clang__
+    int (^entrypc_bkpt) (void) = ^int (void)
+#else
   inline int entrypc_bkpt (void)
+#endif
     {
       Dwarf_Addr pc;
       return INTUSE(dwarf_entrypc) (die, &pc) < 0 ? -1 : add_bkpt (pc);
-    }
+    };
 
   /* Fetch the CU's line records to look for this DIE's addresses.  */
   Dwarf_Die cudie = CUDIE (die->cu);
@@ -102,8 +114,14 @@ dwarf_entry_breakpoints (die, bkpts)
   /* Search a contiguous PC range for prologue-end markers.
      If DWARF, look for proper markers.
      Failing that, if ADHOC, look for the ad hoc convention.  */
+#ifdef __clang__
+  int (^search_range) (Dwarf_Addr, Dwarf_Addr,
+			   bool, bool) = ^int (Dwarf_Addr low, Dwarf_Addr high,
+         bool dwarf, bool adhoc)
+#else
   inline int search_range (Dwarf_Addr low, Dwarf_Addr high,
 			   bool dwarf, bool adhoc)
+#endif
     {
       size_t l = 0, u = nlines;
       while (l < u)
@@ -136,7 +154,7 @@ dwarf_entry_breakpoints (die, bkpts)
 	}
       __libdw_seterrno (DWARF_E_INVALID_DWARF);
       return -1;
-    }
+    };
 
   /* Search each contiguous address range for DWARF prologue_end markers.  */
 

@@ -1022,7 +1022,11 @@ elf_begin (fildes, cmd, ref)
       return NULL;
     }
 
+#ifdef __clang__
+  Elf * (^lock_dup_elf) (void) = ^Elf*(void)
+#else
   Elf *lock_dup_elf ()
+#endif
   {
     /* We need wrlock to dup an archive.  */
     if (ref->kind == ELF_K_AR)
@@ -1033,7 +1037,7 @@ elf_begin (fildes, cmd, ref)
 
     /* Duplicate the descriptor.  */
     return dup_elf (fildes, cmd, ref);
-  }
+  };
 
   switch (cmd)
     {
