@@ -128,8 +128,6 @@ LOCAL_C_INCLUDES := \
 
 ifeq ($(HOST_OS),darwin)
 	LOCAL_CFLAGS += -fnested-functions
-	LOCAL_SRC_FILES += \
-		../host-darwin-fixup/getline.c
 endif
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../host-$(HOST_OS)-fixup
@@ -150,10 +148,6 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := $(LIBDW_SRC_FILES)
-
-# missing utility functions in bionic
-LOCAL_SRC_FILES += \
-	../bionic-fixup/getline.c \
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/.. \
